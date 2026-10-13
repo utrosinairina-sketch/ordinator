@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12304a">
+<meta name="description" content="Мобильный органайзер ординатора — прототип с условными данными">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Ординатор</title>
+<style>
+:root{--navy:#12304a;--teal:#168b87;--bg:#f3f6f8;--card:#fff;--text:#172633;--muted:#637483;--line:#e1e8ed;--amber:#fff1d1;--red:#fde8e5;--green:#e2f4ed}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);padding-bottom:86px}
+header{background:var(--navy);color:white;padding:20px 18px 18px;border-radius:0 0 22px 22px}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:10px}.brand{font-size:22px;font-weight:800;letter-spacing:.2px}.date{font-size:12px;opacity:.8;margin-top:3px}
+.header-pill{font-size:12px;background:#24465e;padding:8px 10px;border-radius:20px}
+main{padding:16px;max-width:680px;margin:auto}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 12px}.section-head h2{font-size:20px;margin:0}.muted{color:var(--muted);font-size:13px}
+button,input,select,textarea{font:inherit}button{border:0;cursor:pointer;min-height:42px}
+.primary{background:var(--teal);color:white;border-radius:13px;padding:11px 14px;font-weight:700}
+.secondary{background:#e5f3f2;color:#116a67;border-radius:12px;padding:9px 12px;font-weight:650}
+.ghost{background:#edf1f4;color:var(--navy);border-radius:11px;padding:9px 11px;font-weight:650}
+.cards{display:grid;gap:11px}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;box-shadow:0 2px 7px #102a3b08}
+.patient-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.patient-name{font-weight:800;font-size:16px}.patient-meta{font-size:13px;color:var(--muted);margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0}.chip{font-size:11px;padding:5px 8px;border-radius:9px;background:#edf4f7;color:#315367}.chip.warn{background:var(--amber);color:#815b08}.chip.done{background:var(--green);color:#17664b}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap}.card-actions button{flex:1;min-width:110px}
+.alert{background:var(--amber);border:1px solid #f0dca6;border-radius:16px;padding:14px;margin:16px 0}.alert strong{display:block;margin-bottom:5px}.task-row{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}.task-row:last-child{border-bottom:0}.task-row input{width:20px;height:20px;margin-top:2px;accent-color:var(--teal)}.task-title{font-weight:650}.task-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:5}
+.nav button{background:transparent;color:#71808c;padding:7px 1px;font-size:11px;min-height:54px;display:flex;flex-direction:column;align-items:center;gap:4px}.nav button.active{color:var(--teal);font-weight:800}.nav .ico{font-size:20px;line-height:1.2}
+.field{display:grid;gap:5px;margin:12px 0}.field label{font-size:13px;color:var(--muted);font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid #d7e0e6;border-radius:12px;background:white;padding:12px;color:var(--text)}textarea{min-height:95px;resize:vertical}
+.form-actions{display:flex;gap:9px;margin-top:15px}.form-actions button{flex:1}
+.template{white-space:pre-wrap;font-size:13px;line-height:1.5;background:#f7fafb;border:1px solid var(--line);padding:12px;border-radius:12px;margin:10px 0}
+.empty{text-align:center;padding:28px 14px;color:var(--muted)}.hidden{display:none!important}
+.small{font-size:12px;color:var(--muted);line-height:1.5}.danger{color:#a2392c;background:var(--red);padding:12px;border-radius:12px;font-size:12px;line-height:1.45}
+.back{background:transparent;color:var(--teal);font-weight:800;padding:0;margin-bottom:12px}
+footer{padding:12px 2px 22px;text-align:center;font-size:11px;color:#82909b}
+</style>
+</head>
+<body>
+<header>
+  <div class="topline">
+    <div><div class="brand">Ординатор</div><div class="date" id="todayLabel">Рабочая панель</div></div>
+    <div class="header-pill">Прототип · демо</div>
+  </div>
+</header>
+<main id="app"></main>
+<nav class="nav" aria-label="Основная навигация">
+  <button data-tab="today" class="active"><span class="ico">⌂</span>Сегодня</button>
+  <button data-tab="patients"><span class="ico">♙</span>Пациенты</button>
+  <button data-tab="calendar"><span class="ico">▦</span>Календарь</button>
+  <button data-tab="tasks"><span class="ico">✓</span>Задачи</button>
+</nav>
+<script>
+const STORE_KEY = "ordinator_demo_v1";
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+const plusDays = n => { const d=new Date(); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+const starter = {
+ patients: [
+  {id:"p1",name:"Пациент 01",room:"—",diagnosis:"Демо-запись · заменить",stage:"После операции",note:"",active:true},
+  {id:"p2",name:"Пациент 02",room:"—",diagnosis:"Демо-запись · заменить",stage:"Наблюдение",note:"",active:true},
+  {id:"p3",name:"Пациент 03",room:"—",diagnosis:"Демо-запись · заменить",stage:"Подготовка",note:"",active:true}
+ ],
+ tasks:[
+  {id:"t1",patientId:"p1",title:"Проверить новые результаты анализов",date:todayISO(),time:"До обхода",status:"Ожидает",done:false},
+  {id:"t2",patientId:"p2",title:"Уточнить время обследования",date:todayISO(),time:"Сегодня",status:"Запланировано",done:false},
+  {id:"t3",patientId:"p3",title:"Обсудить вопрос с ответственным врачом",date:todayISO(),time:"После обхода",status:"Запланировано",done:false}
+ ],
+ appointments:[
+  {id:"a1",patientId:"p1",title:"Контрольный анализ (демо)",date:plusDays(1),type:"Анализы",done:false},
+  {id:"a2",patientId:"p2",title:"Обследование (демо)",date:plusDays(2),type:"Обследование",done:false}
+ ]
+};
+let state = loadState();
+let tab = "today";
+let selectedPatient = null;
+let editingTaskId = null;
+const app = document.getElementById("app");
+document.getElementById("todayLabel").textContent = new Date().toLocaleDateString("ru-RU",{weekday:"long",day:"numeric",month:"long"});
+function loadState(){try{return JSON.parse(localStorage.getItem(STORE_KEY))||structuredClone(starter)}catch(e){return JSON.parse(JSON.stringify(starter))}}
+function save(){localStorage.setItem(STORE_KEY,JSON.stringify(state))}
+function esc(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function patientName(id){return state.patients.find(p=>p.id===id)?.name||"Без пациента"}
+function fmtDate(s){if(!s)return "Без даты";const [y,m,d]=s.split("-");return `${d}.${m}.${y}`}
+function navActive(){document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab))}
+function render(){navActive(); if(selectedPatient){renderPatient(selectedPatient);return}
+ if(tab==="today") renderToday(); else if(tab==="patients") renderPatients(); else if(tab==="calendar") renderCalendar(); else if(tab==="tasks") renderTasks();}
+function renderToday(){
+ const openTasks=state.tasks.filter(t=>!t.done).sort((a,b)=>a.date.localeCompare(b.date));
+ const dueTasks=openTasks.filter(t=>t.date<=todayISO());
+ const todayEvents=state.appointments.filter(a=>!a.done&&a.date===todayISO());
+ app.innerHTML=`<div class="section-head"><div><h2>На сегодня</h2><div class="muted">Сначала важное, затем пациенты</div></div><button class="primary" id="quickTask">＋ Задача</button></div>
+ <div class="cards" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+   <div class="card"><div class="muted">Активные пациенты</div><div style="font-size:30px;font-weight:850;margin-top:4px">${state.patients.filter(p=>p.active!==false).length}</div></div>
+   <div class="card"><div class="muted">Незакрытые задачи</div><div style="font-size:30px;font-weight:850;margin-top:4px">${openTasks.length}</div></div>
+ </div>
+ ${dueTasks.length?`<div class="alert"><strong>Задачи на сегодня и просроченные</strong>${dueTasks.map(t=>`<div class="task-row"><input type="checkbox" data-today-done="${t.id}"><div style="flex:1"><div class="task-title">${esc(t.title)}</div><div class="task-meta">${esc(patientName(t.patientId))} · ${fmtDate(t.date)}${t.time?" · "+esc(t.time):""}</div></div><button class="ghost" data-today-open="${t.patientId}">Карточка</button></div>`).join("")}</div>`:`<div class="card"><strong>Незакрытых задач на сегодня нет</strong><div class="muted" style="margin-top:5px">Проверь новые результаты и изменения состояния по рабочему порядку отделения.</div></div>`}
+ ${todayEvents.length?`<div class="section-head"><h2>События на сегодня</h2></div><div class="card">${todayEvents.map(a=>`<div class="task-row"><div style="flex:1"><div class="task-title">${esc(a.title)}</div><div class="task-meta">${esc(patientName(a.patientId))} · ${esc(a.type)}</div></div><button class="ghost" data-event-open="${a.patientId}">Карточка</button></div>`).join("")}</div>`:""}
+ <div class="section-head"><div><h2>Пациенты</h2><div class="muted">Быстрый переход к карточке</div></div><button class="secondary" id="allPatients">Все</button></div>
+ <div class="cards">${state.patients.filter(p=>p.active!==false).map(p=>{const n=state.tasks.filter(t=>t.patientId===p.id&&!t.done).length;const a=state.appointments.filter(x=>x.patientId===p.id&&!x.done).length;return `<article class="card"><div class="patient-top"><div><div class="patient-name">${esc(p.name)}</div><div class="patient-meta">Палата: ${esc(p.room||"—")} · ${esc(p.stage||"Статус не указан")}</div></div><span class="chip ${n?"warn":"done"}">${n} задач</span></div><div class="patient-meta">${esc(p.diagnosis||"Контекст не указан")}</div><div class="card-actions" style="margin-top:12px"><button class="secondary" data-today-patient="${p.id}">Открыть карточку</button><button class="ghost" data-today-add="${p.id}">＋ Задача</button></div></article>`}).join("")||`<div class="empty">Пока нет карточек. Добавь первого пациента.</div>`}</div>
+ <footer>Демо-прототип. Не вводи реальные медицинские данные до согласования защиты с больницей.</footer>`;
+ document.getElementById("quickTask").onclick=()=>taskForm();
+ document.getElementById("allPatients").onclick=()=>{tab="patients";render()};
+ document.querySelectorAll("[data-today-done]").forEach(c=>c.onchange=()=>{const t=state.tasks.find(t=>t.id===c.dataset.todayDone);if(t)t.done=c.checked;save();render()});
+ document.querySelectorAll("[data-today-open],[data-event-open],[data-today-patient]").forEach(b=>b.onclick=()=>{selectedPatient=b.dataset.todayOpen||b.dataset.eventOpen||b.dataset.todayPatient;render()});
+ document.querySelectorAll("[data-today-add]").forEach(b=>b.onclick=()=>taskForm(null,b.dataset.todayAdd));
+}
+function renderPatients(){
+ const tasksToday=state.tasks.filter(t=>!t.done&&t.date<=todayISO());
+ app.innerHTML=`<div class="section-head"><div><h2>Пациенты</h2><div class="muted">Карточки и задачи на сегодня</div></div><button class="primary" id="addPatient">＋ Добавить</button></div>
+ ${tasksToday.length?`<div class="alert"><strong>Задачи, требующие внимания</strong>${tasksToday.slice(0,3).map(t=>`<div class="task-row"><div>•</div><div><div class="task-title">${esc(t.title)}</div><div class="task-meta">${esc(patientName(t.patientId))} · ${fmtDate(t.date)}</div></div></div>`).join("")}</div>`:""}
+ <div class="cards">${state.patients.filter(p=>p.active!==false).map(p=>{const n=state.tasks.filter(t=>t.patientId===p.id&&!t.done).length;const a=state.appointments.filter(x=>x.patientId===p.id&&!x.done).length;return `<article class="card"><div class="patient-top"><div><div class="patient-name">${esc(p.name)}</div><div class="patient-meta">Палата: ${esc(p.room||"—")} · ${esc(p.stage||"Статус не указан")}</div></div><span class="chip">${n+a} задач</span></div><div class="patient-meta">${esc(p.diagnosis||"Диагноз не указан")}</div><div class="chips"><span class="chip ${n?"warn":"done"}">Задачи: ${n}</span><span class="chip">Календарь: ${a}</span></div><div class="card-actions"><button class="secondary" data-open="${p.id}">Открыть карточку</button><button class="ghost" data-task-for="${p.id}">＋ Задача</button></div></article>`}).join("")||`<div class="empty">Пока нет карточек. Добавь первого пациента.</div>`}</div>
+ <footer>Используй только условные данные до согласования безопасного хранения с больницей.</footer>`;
+ document.getElementById("addPatient").onclick=()=>patientForm();
+ document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{selectedPatient=b.dataset.open;render()});
+ document.querySelectorAll("[data-task-for]").forEach(b=>b.onclick=()=>taskForm(null,b.dataset.taskFor));
+}
+function renderPatient(id){
+ const p=state.patients.find(x=>x.id===id); if(!p){selectedPatient=null;render();return}
+ const tasks=state.tasks.filter(t=>t.patientId===id).sort((a,b)=>a.date.localeCompare(b.date));
+ const appts=state.appointments.filter(a=>a.patientId===id).sort((a,b)=>a.date.localeCompare(b.date));
+ app.innerHTML=`<button class="back" id="back">← К списку пациентов</button><div class="section-head"><div><h2>${esc(p.name)}</h2><div class="muted">Палата: ${esc(p.room||"—")} · ${esc(p.stage||"")}</div></div><button class="ghost" id="editPatient">Изменить</button></div>
+ <div class="card"><div class="patient-meta">Диагноз / контекст</div><div style="font-weight:700;margin:5px 0 12px">${esc(p.diagnosis||"Не заполнено")}</div><div class="patient-meta">Заметки</div><div style="margin-top:5px;white-space:pre-wrap">${esc(p.note||"Нет заметок")}</div></div>
+ <div class="section-head"><h2>Задачи</h2><button class="primary" id="newTask">＋ Добавить</button></div>
+ <div class="card">${tasks.length?tasks.map(t=>`<div class="task-row"><input type="checkbox" data-task-done="${t.id}" ${t.done?"checked":""}><div style="flex:1"><div class="task-title" style="${t.done?"text-decoration:line-through;color:#82909b":""}">${esc(t.title)}</div><div class="task-meta">${fmtDate(t.date)} · ${esc(t.time||"")}</div></div><button class="ghost" data-edit-task="${t.id}">✎</button></div>`).join(""):`<div class="empty">Задач пока нет</div>`}</div>
+ <div class="section-head"><h2>Календарь</h2><button class="secondary" id="newAppt">＋ Событие</button></div>
+ <div class="card">${appts.length?appts.map(a=>`<div class="task-row"><input type="checkbox" data-appt-done="${a.id}" ${a.done?"checked":""}><div><div class="task-title">${esc(a.title)}</div><div class="task-meta">${fmtDate(a.date)} · ${esc(a.type)}</div></div></div>`).join(""):`<div class="empty">Событий пока нет</div>`}</div>
+ <div class="card"><div class="patient-name">Быстрые действия</div><p class="small">Добавляй задачи и события прямо из карточки пациента.</p><div class="card-actions"><button class="secondary" id="quickPatientTask">＋ Задача</button><button class="ghost" id="quickPatientEvent">＋ Событие</button></div></div>`;
+ document.getElementById("back").onclick=()=>{selectedPatient=null;render()};
+ document.getElementById("editPatient").onclick=()=>patientForm(p);
+ document.getElementById("newTask").onclick=()=>taskForm(null,id);
+ document.getElementById("newAppt").onclick=()=>appointmentForm(id);
+ document.getElementById("quickPatientTask").onclick=()=>taskForm(null,id);
+ document.getElementById("quickPatientEvent").onclick=()=>appointmentForm(id);
+ document.querySelectorAll("[data-task-done]").forEach(c=>c.onchange=()=>{const t=state.tasks.find(t=>t.id===c.dataset.taskDone);if(t)t.done=c.checked;save();render()});
+ document.querySelectorAll("[data-appt-done]").forEach(c=>c.onchange=()=>{const a=state.appointments.find(a=>a.id===c.dataset.apptDone);if(a)a.done=c.checked;save();render()});
+ document.querySelectorAll("[data-edit-task]").forEach(b=>b.onclick=()=>taskForm(state.tasks.find(t=>t.id===b.dataset.editTask)));
+}
+function patientForm(p=null){
+ app.innerHTML=`<button class="back" id="cancel">← Назад</button><h2>${p?"Карточка пациента":"Новый пациент"}</h2><p class="small">Для демонстрации используй только условные данные. Не вводи реальные идентификаторы пациентов в этот прототип.</p>
+ <div class="field"><label>Короткое имя / условный ID</label><input id="pname" maxlength="60" placeholder="Например, Пациент 04" value="${esc(p?.name||"")}"></div>
+ <div class="field"><label>Палата (необязательно)</label><input id="proom" maxlength="20" placeholder="—" value="${esc(p?.room||"")}"></div>
+ <div class="field"><label>Статус / этап</label><select id="pstage">${["После операции","Наблюдение","Подготовка","Перевод / выписка","Другое"].map(x=>`<option ${p?.stage===x?"selected":""}>${x}</option>`).join("")}</select></div>
+ <div class="field"><label>Краткий контекст (без идентификаторов)</label><textarea id="pdiag" maxlength="500" placeholder="Демо-описание">${esc(p?.diagnosis||"")}</textarea></div>
+ <div class="field"><label>Заметки</label><textarea id="pnote" maxlength="1000" placeholder="Организационные заметки">${esc(p?.note||"")}</textarea></div>
+ <div class="form-actions"><button class="ghost" id="cancel2">Отмена</button><button class="primary" id="savePatient">Сохранить</button></div>`;
+ const cancel=()=>{if(p){selectedPatient=p.id;render()}else render()};
+ document.getElementById("cancel").onclick=cancel;document.getElementById("cancel2").onclick=cancel;
+ document.getElementById("savePatient").onclick=()=>{const name=document.getElementById("pname").value.trim();if(!name){alert("Введи условное имя или ID.");return}
+ if(p){p.name=name;p.room=document.getElementById("proom").value.trim();p.stage=document.getElementById("pstage").value;p.diagnosis=document.getElementById("pdiag").value.trim();p.note=document.getElementById("pnote").value.trim();selectedPatient=p.id}
+ else{const np={id:"p"+Date.now(),name,room:document.getElementById("proom").value.trim(),stage:document.getElementById("pstage").value,diagnosis:document.getElementById("pdiag").value.trim(),note:document.getElementById("pnote").value.trim(),active:true};state.patients.push(np);selectedPatient=np.id}
+ save();render()};
+}
+function taskForm(t=null,patientId=null){
+ const isEdit=!!t;const val=t||{patientId:patientId||state.patients[0]?.id||"",title:"",date:todayISO(),time:"",done:false};
+ app.innerHTML=`<button class="back" id="cancel">← Назад</button><h2>${isEdit?"Изменить задачу":"Новая задача"}</h2>
+ <div class="field"><label>Пациент</label><select id="tpatient">${state.patients.map(p=>`<option value="${p.id}" ${val.patientId===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+ <div class="field"><label>Что сделать</label><input id="ttitle" maxlength="180" placeholder="Короткая формулировка задачи" value="${esc(val.title)}"></div>
+ <div class="field"><label>Дата</label><input id="tdate" type="date" value="${esc(val.date)}"></div>
+ <div class="field"><label>Когда / срок</label><input id="ttime" maxlength="60" placeholder="Например, до обхода" value="${esc(val.time||"")}"></div>
+ <div class="form-actions"><button class="ghost" id="cancel2">Отмена</button><button class="primary" id="saveTask">Сохранить</button></div>
+ ${isEdit?`<div style="margin-top:12px"><button class="ghost" id="deleteTask">Удалить задачу</button></div>`:""}`;
+ const cancel=()=>render();document.getElementById("cancel").onclick=cancel;document.getElementById("cancel2").onclick=cancel;
+ document.getElementById("saveTask").onclick=()=>{const title=document.getElementById("ttitle").value.trim();if(!title){alert("Введи задачу.");return}
+ if(t){t.patientId=document.getElementById("tpatient").value;t.title=title;t.date=document.getElementById("tdate").value;t.time=document.getElementById("ttime").value.trim()}
+ else state.tasks.push({id:"t"+Date.now(),patientId:document.getElementById("tpatient").value,title,date:document.getElementById("tdate").value,time:document.getElementById("ttime").value.trim(),done:false,status:"Запланировано"});
+ save();render()};
+ if(isEdit)document.getElementById("deleteTask").onclick=()=>{if(confirm("Удалить задачу?")){state.tasks=state.tasks.filter(x=>x.id!==t.id);save();render()}};
+}
+function appointmentForm(patientId=null){
+ app.innerHTML=`<button class="back" id="cancel">← Назад</button><h2>Новое событие</h2>
+ <div class="field"><label>Пациент</label><select id="apatient">${state.patients.map(p=>`<option value="${p.id}" ${patientId===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+ <div class="field"><label>Событие / назначение</label><input id="atitle" maxlength="180" placeholder="Например, контрольное исследование"></div>
+ <div class="field"><label>Тип</label><select id="atype"><option>Анализы</option><option>Обследование</option><option>Консультация</option><option>Документы</option><option>Другое</option></select></div>
+ <div class="field"><label>Дата</label><input id="adate" type="date" value="${todayISO()}"></div>
+ <div class="form-actions"><button class="ghost" id="cancel2">Отмена</button><button class="primary" id="saveAppt">Сохранить</button></div>`;
+ const cancel=()=>render();document.getElementById("cancel").onclick=cancel;document.getElementById("cancel2").onclick=cancel;
+ document.getElementById("saveAppt").onclick=()=>{const title=document.getElementById("atitle").value.trim();if(!title){alert("Введи название события.");return}state.appointments.push({id:"a"+Date.now(),patientId:document.getElementById("apatient").value,title,type:document.getElementById("atype").value,date:document.getElementById("adate").value,done:false});save();render()};
+}
+function renderTasks(){
+ const list=[...state.tasks].sort((a,b)=>(a.done-b.done)||a.date.localeCompare(b.date));
+ app.innerHTML=`<div class="section-head"><div><h2>Задачи</h2><div class="muted">Отмечай выполнение и фиксируй сроки</div></div><button class="primary" id="addTask">＋ Добавить</button></div>
+ <div class="card">${list.length?list.map(t=>`<div class="task-row"><input type="checkbox" data-done="${t.id}" ${t.done?"checked":""}><div style="flex:1"><div class="task-title" style="${t.done?"text-decoration:line-through;color:#82909b":""}">${esc(t.title)}</div><div class="task-meta">${esc(patientName(t.patientId))} · ${fmtDate(t.date)} · ${esc(t.time||"")}</div></div><button class="ghost" data-edit="${t.id}">✎</button></div>`).join(""):`<div class="empty">Нет задач</div>`}</div>
+ <div class="danger" style="margin-top:14px">Этот список — напоминание, а не клиническая система назначения или мониторинга. Для срочных вопросов используй установленный в больнице порядок эскалации.</div>`;
+ document.getElementById("addTask").onclick=()=>taskForm();
+ document.querySelectorAll("[data-done]").forEach(c=>c.onchange=()=>{const t=state.tasks.find(t=>t.id===c.dataset.done);if(t)t.done=c.checked;save();render()});
+ document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>taskForm(state.tasks.find(t=>t.id===b.dataset.edit)));
+}
+function renderCalendar(){
+ const items=[...state.appointments.map(a=>({...a,kind:"appointment"})),...state.tasks.map(t=>({...t,type:"Задача",kind:"task"}))].sort((a,b)=>a.date.localeCompare(b.date));
+ app.innerHTML=`<div class="section-head"><div><h2>Календарь</h2><div class="muted">Назначения и задачи по датам</div></div><button class="primary" id="addEvent">＋ Событие</button></div>
+ <div class="cards">${items.length?items.map(x=>`<article class="card"><div class="patient-top"><div><div class="patient-name">${esc(x.title)}</div><div class="patient-meta">${fmtDate(x.date)} · ${esc(patientName(x.patientId))}</div></div><span class="chip ${x.done?"done":"warn"}">${x.done?"Выполнено":esc(x.type||"Задача")}</span></div>${x.kind==="task"?`<div class="card-actions"><button class="secondary" data-edit-task="${x.id}">Открыть задачу</button></div>`:`<div class="card-actions"><button class="secondary" data-open-p="${x.patientId}">Открыть пациента</button></div>`}</article>`).join(""):`<div class="empty">Событий пока нет</div>`}</div>`;
+ document.getElementById("addEvent").onclick=()=>appointmentForm();
+ document.querySelectorAll("[data-edit-task]").forEach(b=>b.onclick=()=>taskForm(state.tasks.find(t=>t.id===b.dataset.editTask)));
+ document.querySelectorAll("[data-open-p]").forEach(b=>b.onclick=()=>{selectedPatient=b.dataset.openP;render()});
+}
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>{selectedPatient=null;tab=b.dataset.tab;render()}));
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
+render();
+</script>
+</body>
+</html>
