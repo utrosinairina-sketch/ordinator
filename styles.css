@@ -80,3 +80,27 @@ label { font-size:13px; color:var(--muted); display:block; margin:9px 0 5px; }
 .round-table td { min-width:52px; }
 .event-diff { font-size:11px; white-space:pre-wrap; overflow-wrap:anywhere; background:#f3f7f8; border-radius:8px; padding:8px; }
 @media (max-width:390px){ .ref-grid {gap:6px;} .wrap{padding-bottom:96px;} }
+/* Версия 10 — плотные мобильные таблицы, совмещённый график и библиотека. */
+.date-preview { display:block; margin:3px 2px 5px; color:#48676f; font-size:11px; }
+.graph-options { display:grid; grid-template-columns:1fr; gap:2px; padding:4px 0; }
+.graph-choice { display:flex; align-items:center; gap:9px; margin:0; padding:8px 5px; border-bottom:1px solid var(--line); color:var(--ink); font-size:13px; cursor:pointer; }
+.graph-choice input { flex:none; width:18px; height:18px; accent-color:var(--teal); }
+.graph-choice span { flex:1; min-width:0; }
+.graph-choice small { color:var(--muted); font-size:11px; }
+.plot-scroll { overflow-x:auto; overscroll-behavior-x:contain; border:1px solid var(--line); border-radius:10px; padding:4px; margin-top:10px; }
+.plot-scroll svg { display:block; max-width:none; }
+.plot-legends { display:flex; flex-wrap:wrap; gap:7px 12px; margin-top:10px; }
+.plot-legend-item { display:flex; align-items:center; gap:6px; font-size:12px; }
+.plot-legend-item i { display:inline-block; width:12px; height:12px; border-radius:50%; flex:none; }
+.plot-legend-item small { color:var(--muted); }
+.bulk-table { border-collapse:collapse; width:100%; min-width:340px; font-size:12px; }
+.bulk-table th,.bulk-table td { border-bottom:1px solid var(--line); padding:6px; text-align:left; }
+.bulk-table td:nth-child(1) { width:52%; }
+.bulk-table td:nth-child(2) { width:30%; }
+.bulk-table td:nth-child(3) { width:18%; white-space:normal; }
+.bulk-table input[type=number] { padding:8px !important; font-size:15px; }
+.bulk-table .bulk-group th { background:#e8f2f3; color:#075a63; font-weight:750; }
+.pdf-extract { white-space:pre-wrap; font-size:12px; max-height:220px; overflow:auto; overflow-wrap:anywhere; }
+.library-card .muted { margin:5px 0; }
+.nav { grid-template-columns:repeat(4,minmax(0,1fr)); }
+@media(max-width:390px){.bulk-table {font-size:11px}.bulk-table td,.bulk-table th{padding:5px 4px}}
