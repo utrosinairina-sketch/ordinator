@@ -67,3 +67,16 @@ label { font-size:13px; color:var(--muted); display:block; margin:9px 0 5px; }
 .inline-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
 @media (max-width:390px) { .wrap { padding:11px 10px 100px; } .grid { gap:7px; } .card,.syscard { padding:10px; } .btn { padding:9px 10px; font-size:13px; } }
 @media (min-width:780px) { .nav { left:50%; transform:translateX(-50%); width:800px; } }
+/* Доработка медицинских форм v9 без изменения базовой палитры v7/v8 */
+.nav { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.collapsible > summary { cursor:pointer; padding:3px 0 6px; }
+.metric { border-top:1px solid var(--line); padding:10px 1px; }
+.metric > summary { cursor:pointer; font-weight:650; }
+.metric-body { padding:6px 0 1px; }
+.metric details > summary { cursor:pointer; }
+.previous-result { color:#075a63; background:#e8f5f5; border-radius:9px; padding:8px; font-size:12px; margin:9px 0; }
+.ref-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.stick-date { position:sticky; left:0; z-index:1; background:#f5fafb; }
+.round-table td { min-width:52px; }
+.event-diff { font-size:11px; white-space:pre-wrap; overflow-wrap:anywhere; background:#f3f7f8; border-radius:8px; padding:8px; }
+@media (max-width:390px){ .ref-grid {gap:6px;} .wrap{padding-bottom:96px;} }

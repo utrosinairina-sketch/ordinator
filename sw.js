@@ -1,8 +1,8 @@
 // Обновляйте VERSION при каждой публикации, если меняете файлы приложения.
-const VERSION = 'ordinator-v8-refactor-2026-10-18';
+const VERSION = 'ordinator-v9-clinical-2026-10-25';
 const ASSETS = [
   './', './index.html', './styles.css', './manifest.webmanifest',
-  './js/catalog.js', './js/storage.js', './js/app.js',
+  './js/catalog.js', './js/clinical.js', './js/dynamics.js', './js/excel.js', './js/storage.js', './js/app.js',
 ];
 
 self.addEventListener('install', event => {
